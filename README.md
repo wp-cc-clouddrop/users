@@ -4,6 +4,7 @@
 
 # cloud-wp-ws19 - User Microservice
 Project repository for WP Cloud Computing WS19
+
 The user microservice is implemented with Go (Golang).
 
 ## Go
