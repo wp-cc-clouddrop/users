@@ -12,7 +12,7 @@ stages:
   - package
   #-deploy
 
-maven-build:
+go-build:
   image: golang:1.9
   stage: build
   script: "go build -o users"
