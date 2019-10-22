@@ -1,5 +1,5 @@
 # iron/go is the alpine image with only ca-certificates added
-FROM golang:1.9
+FROM golang:1.12
 
 WORKDIR /app
 # Now just add the binary
