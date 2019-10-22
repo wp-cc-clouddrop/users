@@ -13,7 +13,7 @@ stages:
   #-deploy
 
 go-build:
-  image: golang:1.9
+  image: golang:1.12
   stage: build
   script: "go build -o users"
   artifacts:
