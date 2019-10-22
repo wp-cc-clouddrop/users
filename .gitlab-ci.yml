@@ -10,7 +10,7 @@ variables:
 stages:
   - build
   - package
-  #-deploy
+  - deploy
 
 go-build:
   image: golang:1.12
@@ -26,3 +26,8 @@ docker-build:
   - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN docker-hub.informatik.haw-hamburg.de
   - docker build -t docker-hub.informatik.haw-hamburg.de/wp-cc-clouddrop/users .
   - docker push docker-hub.informatik.haw-hamburg.de/wp-cc-clouddrop/users
+  tags: [dind, docker]
+
+trigger-deploy:
+  stage: deploy
+  trigger: wp-cc-clouddrop/cloudrop
