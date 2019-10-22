@@ -2,12 +2,32 @@ package services
 
 import (
 	"errors"
-	"users/internal/db"
+	"log"
+	. "users/internal/mongoDB/adapter"
+	. "users/internal/mongoDB/adapter/azureCosmos"
 	. "users/internal/types"
 )
 
+var (
+	mongoDB      MongoDBCloud
+	myCollection string
+)
+
+func init() {
+	mongoDB = &AzureCosmos{}
+	myCollection = "user"
+	connectErr := mongoDB.Connect()
+	if connectErr != nil {
+		log.Fatal(connectErr)
+	}
+}
+
+func Disconnect() error {
+	return mongoDB.Disconnect()
+}
+
 func Register(newUser User) error {
-	err := db.Create("user", newUser)
+	err := mongoDB.Insert(myCollection, newUser)
 	return err
 }
 
@@ -16,8 +36,9 @@ func GetUser() (User, error) {
 	return user, nil
 }
 
-func UpdateUser(newUser User) error {
-	return errors.New("NoUserFound")
+func UpdateUser(email string, newUser User) error {
+	updateErr := mongoDB.Update(myCollection, email, newUser)
+	return updateErr
 }
 
 func DeleteUser(id string) error {
