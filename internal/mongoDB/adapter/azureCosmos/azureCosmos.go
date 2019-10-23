@@ -64,5 +64,6 @@ func (azure *AzureCosmos) Get(collection string, id string) ([]byte, error) {
 }
 
 func (azure *AzureCosmos) Delete(collection string, id string) error {
-	panic("implement me")
+	remErr := azure.database.C(collection).RemoveId(id)
+	return remErr
 }

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 	"users/internal/services"
 	. "users/internal/types"
 )
@@ -23,7 +24,7 @@ func Init(port int) {
 	router.HandleFunc("/user/{email}", handleGetUser).Methods("GET")
 	router.HandleFunc("/user/{email}", handleUpdateUser).Methods("PUT")
 	router.HandleFunc("/user/{email}", handleDeleteUser).Methods("DELETE")
-	router.HandleFunc("/shutdown", handleShutdown)
+	router.HandleFunc("/user/shutdown", handleShutdown)
 
 	log.Fatal(http.ListenAndServe(":"+strconv.FormatInt(int64(port), 10), router))
 }
@@ -33,16 +34,17 @@ func handleShutdown(w http.ResponseWriter, r *http.Request) {
 	discErr := services.Disconnect()
 	if discErr == nil {
 		w.WriteHeader(http.StatusAccepted)
+		_, _ = w.Write([]byte("down"))
 	} else {
-		sendJSONResponse(&w, FailMessage{Fault: discErr.Error()}, http.StatusConflict)
+		_ = sendJSONResponse(&w, FailMessage{Fault: discErr.Error()}, http.StatusConflict)
 	}
-
+	time.Sleep(2)
 	os.Exit(0)
 }
 
 func handleRegisterUser(w http.ResponseWriter, r *http.Request) {
 	//debugging
-	w.Header().Set("debug", "POST /user")
+	w.Header().Set("debug", "POST /userService")
 
 	var userData *User
 	var parseErr error
@@ -66,6 +68,18 @@ func handleAuth(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {
+	username, password, ok := r.BasicAuth()
+	if !ok {
+		_ = sendJSONResponse(&w, FailMessage{Fault: "username and password are not formatted correctly"}, http.StatusUnauthorized)
+		return
+	}
+	jwt, loginErr := services.Login(username, password)
+	if loginErr != nil {
+		_ = sendJSONResponse(&w, FailMessage{Fault: loginErr.Error()}, http.StatusUnauthorized)
+		return
+	}
+	w.Header().Set("Authorization", "Bearer "+jwt)
+
 	w.WriteHeader(204)
 }
 
@@ -94,7 +108,16 @@ func handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleDeleteUser(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(204)
+	vars := mux.Vars(r)
+	email := vars["email"]
+	err := services.DeleteUser(email)
+
+	if err != nil {
+		_ = sendJSONResponse(&w, FailMessage{Fault: err.Error()}, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func handleGetUser(w http.ResponseWriter, r *http.Request) {

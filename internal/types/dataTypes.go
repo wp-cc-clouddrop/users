@@ -17,7 +17,9 @@ type MongoAccess struct {
 	Database string `json:"database"`
 }
 
-type DBEntry interface {
+type JWT struct {
+	Email string `bson:"_id" json:"email"`
+	JWT   string `bson:"jwt json:"jwt"`
 }
 
 type User struct {
