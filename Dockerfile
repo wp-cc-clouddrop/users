@@ -4,5 +4,8 @@ FROM golang:1.12
 WORKDIR /app
 # Now just add the binary
 ADD users /app/
+# add webservice configuration to docker
+ADD azureConfig.json /app/
+
 ENTRYPOINT ["./users"]
 EXPOSE 8080

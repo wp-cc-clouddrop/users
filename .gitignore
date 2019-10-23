@@ -9,7 +9,6 @@
 *.dll
 *.so
 *.dylib
-users
 
 # Test binary, built with `go test -c`
 *.test

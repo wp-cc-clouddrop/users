@@ -1,0 +1,7 @@
+{
+    "host": "user-db.mongo.cosmos.azure.com",
+    "port": "10255",
+    "user": "user-db",
+    "password": "jlwnueGGCxpjwlpxTJ6ovBIi5xW3aoCTEignYQNsJTep9e7rHP3AUBs9wADxUduoNZVpfJ4hszbm00lnj8eqcQ==",
+    "database": "TEST"
+}
