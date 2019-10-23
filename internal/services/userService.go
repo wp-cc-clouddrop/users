@@ -31,9 +31,14 @@ func Register(newUser User) error {
 	return err
 }
 
-func GetUser() (User, error) {
-	user := User{"testname", "test@mail", "testpw"}
-	return user, nil
+func GetUser(email string) (User, error) {
+	bin, getErr := mongoDB.Get(myCollection, email)
+	if getErr != nil { //not found
+		return User{}, getErr
+	}
+
+	user, parseErr := NewUserFromDB(bin) //parse data to User Struct
+	return *user, parseErr
 }
 
 func UpdateUser(email string, newUser User) error {

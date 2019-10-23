@@ -1,6 +1,7 @@
 package azureCosmos
 
 import (
+	"encoding/json"
 	. "github.com/Azure/azure-sdk-for-go/services/cosmos-db/mongodb"
 	"github.com/globalsign/mgo"
 	"log"
@@ -52,8 +53,14 @@ func (azure *AzureCosmos) Update(collection string, id string, obj interface{}) 
 	return updErr
 }
 
-func (azure *AzureCosmos) Get(collection string, id string) (interface{}, error) {
-	panic("implement me")
+func (azure *AzureCosmos) Get(collection string, id string) ([]byte, error) {
+	var data *interface{}
+	getErr := azure.database.C(collection).FindId(id).One(&data)
+	if getErr != nil { // no entrie found
+		return nil, getErr
+	}
+	bytes, parseErr := json.Marshal(data)
+	return bytes, parseErr
 }
 
 func (azure *AzureCosmos) Delete(collection string, id string) error {

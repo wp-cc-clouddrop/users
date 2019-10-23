@@ -34,9 +34,7 @@ func handleShutdown(w http.ResponseWriter, r *http.Request) {
 	if discErr == nil {
 		w.WriteHeader(http.StatusAccepted)
 	} else {
-		w.WriteHeader(http.StatusConflict)
-		jsonResponse, _ := json.Marshal(&FailMessage{Fault: discErr.Error()})
-		_, _ = w.Write(jsonResponse)
+		sendJSONResponse(&w, FailMessage{Fault: discErr.Error()}, http.StatusConflict)
 	}
 
 	os.Exit(0)
@@ -100,7 +98,16 @@ func handleDeleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	email := vars["email"]
+	user, err := services.GetUser(email)
 
+	if err != nil {
+		_ = sendJSONResponse(&w, FailMessage{Fault: err.Error()}, http.StatusInternalServerError)
+		return
+	}
+
+	_ = sendJSONResponse(&w, user, http.StatusOK)
 }
 
 func getUserFromBody(body io.ReadCloser) (*User, error) {
@@ -110,7 +117,7 @@ func getUserFromBody(body io.ReadCloser) (*User, error) {
 		return user, err
 	} else {
 		var parseErr error
-		user, parseErr = NewUser(bin)
+		user, parseErr = NewUserBin(bin)
 		if parseErr != nil {
 			return user, parseErr
 		}
