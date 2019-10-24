@@ -47,6 +47,7 @@ func GetUser(email string) (User, error) {
 }
 
 func UpdateUser(email string, newUser User) error {
+	newUser.Password = pwSecurity.HashAndSalt(newUser.Password)
 	updateErr := mongoDB.Update(userCollection, email, newUser)
 	return updateErr
 }
