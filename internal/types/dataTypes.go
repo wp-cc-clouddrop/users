@@ -17,14 +17,14 @@ type MongoAccess struct {
 	Database string `json:"database"`
 }
 
-type JWTDB struct {
-	JWT   string `bson:"jwt json:"jwt"`
-	Email string `bson:"_id" json:"email"`
+type dbJWT struct {
+	JWT   string `bson:"jwt" json:"jwt"`
+	Email string `bson:"_id" json:"_id"`
 }
 
 type JWT struct {
-	JWT   string `bson:"jwt json:"jwt"`
-	Email string `bson:"email" json:"email"`
+	JWT   string `bson:"jwt" json:"jwt"`
+	Email string `bson:"_id" json:"email"`
 }
 
 type User struct {
@@ -51,6 +51,15 @@ func NewUserFromDB(binary []byte) (*User, error) {
 		}
 	}
 	return &newUser, parseErr
+}
+
+//needed ugly workaround
+func NewJWTFromDB(binary []byte) (*JWT, error) {
+	var newJWT JWT
+	var newDBJWT dbJWT
+	parseErr := json.Unmarshal(binary, &newDBJWT)
+	newJWT = JWT(newDBJWT)
+	return &newJWT, parseErr
 }
 
 func NewUserBin(binary []byte) (*User, error) {

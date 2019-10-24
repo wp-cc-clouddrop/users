@@ -15,6 +15,7 @@ type MongoDBCloud interface {
 	Insert(collection string, obj interface{}) error
 	Update(collection string, id string, obj interface{}) error
 	Get(collection string, id string) ([]byte, error)
+	Find(collection string, fieldname string, value string) ([]byte, error)
 	Delete(collection string, id string) error
 }
 

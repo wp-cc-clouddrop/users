@@ -9,8 +9,9 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
-	"users/internal/services"
+	"users/internal/services/userauth"
 	. "users/internal/types"
 )
 
@@ -35,7 +36,7 @@ func Init(port int) {
 
 func handleShutdown(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("debug", "ANY /shutdown")
-	discErr := services.Disconnect()
+	discErr := userauth.Disconnect()
 	if discErr == nil {
 		w.WriteHeader(http.StatusAccepted)
 		_, _ = w.Write([]byte("down"))
@@ -58,7 +59,7 @@ func handleRegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	regErr := services.Register(*userData)
+	regErr := userauth.Register(*userData)
 	if regErr != nil {
 		_ = sendJSONResponse(&w, FailMessage{Fault: regErr.Error()}, http.StatusInternalServerError)
 		return
@@ -68,30 +69,34 @@ func handleRegisterUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleAuth(w http.ResponseWriter, r *http.Request) {
-	jwt := JWT{
-		JWT:   jwtdummy,
-		Email: "fazel@test.de",
+	tokenstring := r.Header.Get("Authorization")
+	tokenstring = strings.TrimPrefix(tokenstring, "Bearer ")
+	jwt, authErr := userauth.Auth(tokenstring)
+
+	if authErr != nil {
+		_ = sendJSONResponse(&w, FailMessage{Fault: authErr.Error()}, http.StatusUnauthorized)
+		return
 	}
-	sendJSONResponse(&w, jwt, 200)
+
+	_ = sendJSONResponse(&w, jwt, http.StatusOK)
 }
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {
-	/*
-		username, password, ok := r.BasicAuth()
-		if !ok {
-			_ = sendJSONResponse(&w, FailMessage{Fault: "username and password are not formatted correctly"}, http.StatusUnauthorized)
-			return
-		}
-		jwt, loginErr := services.Login(username, password)
-		jwt = jwtdummy
-		if loginErr != nil {
-			_ = sendJSONResponse(&w, FailMessage{Fault: loginErr.Error()}, http.StatusUnauthorized)
-			return
-		}
-	*/
-	w.Header().Set("Authorization", "Bearer "+jwtdummy)
+	username, password, ok := r.BasicAuth()
+	if !ok {
+		_ = sendJSONResponse(&w, FailMessage{Fault: "username and password are not formatted correctly"}, http.StatusUnauthorized)
+		return
+	}
 
-	w.WriteHeader(204)
+	jwt, loginErr := userauth.Login(username, password)
+	if loginErr != nil {
+		_ = sendJSONResponse(&w, FailMessage{Fault: loginErr.Error()}, http.StatusUnauthorized)
+		return
+	} else {
+		w.Header().Set("Authorization", "Bearer "+jwt)
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
 }
 
 func handleLogout(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +114,7 @@ func handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updErr := services.UpdateUser(email, *newUserP)
+	updErr := userauth.UpdateUser(email, *newUserP)
 	if updErr != nil {
 		_ = sendJSONResponse(&w, FailMessage{Fault: updErr.Error()}, http.StatusInternalServerError)
 		return
@@ -121,7 +126,7 @@ func handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 func handleDeleteUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	email := vars["email"]
-	err := services.DeleteUser(email)
+	err := userauth.DeleteUser(email)
 
 	if err != nil {
 		_ = sendJSONResponse(&w, FailMessage{Fault: err.Error()}, http.StatusInternalServerError)
@@ -134,7 +139,7 @@ func handleDeleteUser(w http.ResponseWriter, r *http.Request) {
 func handleGetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	email := vars["email"]
-	user, err := services.GetUser(email)
+	user, err := userauth.GetUser(email)
 
 	if err != nil {
 		_ = sendJSONResponse(&w, FailMessage{Fault: err.Error()}, http.StatusInternalServerError)

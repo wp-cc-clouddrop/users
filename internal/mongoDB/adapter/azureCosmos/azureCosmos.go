@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	. "github.com/Azure/azure-sdk-for-go/services/cosmos-db/mongodb"
 	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
 	"log"
 	"users/internal/mongoDB/adapter"
 )
@@ -56,6 +57,16 @@ func (azure *AzureCosmos) Update(collection string, id string, obj interface{}) 
 func (azure *AzureCosmos) Get(collection string, id string) ([]byte, error) {
 	var data *interface{}
 	getErr := azure.database.C(collection).FindId(id).One(&data)
+	if getErr != nil { // no entrie found
+		return nil, getErr
+	}
+	bytes, parseErr := json.Marshal(data)
+	return bytes, parseErr
+}
+
+func (azure *AzureCosmos) Find(collection string, fieldname string, value string) ([]byte, error) {
+	var data *interface{}
+	getErr := azure.database.C(collection).Find(bson.D{{fieldname, value}}).One(&data)
 	if getErr != nil { // no entrie found
 		return nil, getErr
 	}
