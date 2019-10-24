@@ -82,8 +82,14 @@ func Login(email string, password string) (string, error) {
 	}
 }
 
-func Logout() {
-
+func Logout(tokenstring string) error {
+	jwtbin, findErr := mongoDB.Find(authCollection, "jwt", tokenstring)
+	if findErr != nil {
+		return errors.New("jwt, session-key is not valid")
+	}
+	jwt, _ := NewJWTFromDB(jwtbin)
+	delErr := mongoDB.Delete(authCollection, jwt.Email)
+	return delErr
 }
 
 func Auth(tokenstring string) (JWT, error) {

@@ -100,7 +100,16 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleLogout(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(204)
+	tokenstring := r.Header.Get("Authorization")
+	tokenstring = strings.TrimPrefix(tokenstring, "Bearer ")
+	authErr := userauth.Logout(tokenstring)
+
+	if authErr != nil {
+		_ = sendJSONResponse(&w, FailMessage{Fault: authErr.Error()}, http.StatusUnauthorized)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func handleUpdateUser(w http.ResponseWriter, r *http.Request) {
