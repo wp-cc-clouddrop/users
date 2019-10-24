@@ -113,6 +113,15 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleUpdateUser(w http.ResponseWriter, r *http.Request) {
+	tokenstring := r.Header.Get("Authorization")
+	tokenstring = strings.TrimPrefix(tokenstring, "Bearer ")
+	_, authErr := userauth.Auth(tokenstring)
+
+	if authErr != nil {
+		_ = sendJSONResponse(&w, FailMessage{Fault: authErr.Error()}, http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	email := vars["email"]
 	var newUserP *User
@@ -133,6 +142,15 @@ func handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleDeleteUser(w http.ResponseWriter, r *http.Request) {
+	tokenstring := r.Header.Get("Authorization")
+	tokenstring = strings.TrimPrefix(tokenstring, "Bearer ")
+	_, authErr := userauth.Auth(tokenstring)
+
+	if authErr != nil {
+		_ = sendJSONResponse(&w, FailMessage{Fault: authErr.Error()}, http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	email := vars["email"]
 	err := userauth.DeleteUser(email)
@@ -146,6 +164,15 @@ func handleDeleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetUser(w http.ResponseWriter, r *http.Request) {
+	tokenstring := r.Header.Get("Authorization")
+	tokenstring = strings.TrimPrefix(tokenstring, "Bearer ")
+	_, authErr := userauth.Auth(tokenstring)
+
+	if authErr != nil {
+		_ = sendJSONResponse(&w, FailMessage{Fault: authErr.Error()}, http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	email := vars["email"]
 	user, err := userauth.GetUser(email)
