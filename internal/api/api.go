@@ -14,6 +14,10 @@ import (
 	. "users/internal/types"
 )
 
+const jwtdummy = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
+	"eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ." +
+	"SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
 func Init(port int) {
 	router := mux.NewRouter()
 
@@ -64,21 +68,28 @@ func handleRegisterUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleAuth(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(200)
+	jwt := JWT{
+		JWT:   jwtdummy,
+		Email: "fazel@test.de",
+	}
+	sendJSONResponse(&w, jwt, 200)
 }
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {
-	username, password, ok := r.BasicAuth()
-	if !ok {
-		_ = sendJSONResponse(&w, FailMessage{Fault: "username and password are not formatted correctly"}, http.StatusUnauthorized)
-		return
-	}
-	jwt, loginErr := services.Login(username, password)
-	if loginErr != nil {
-		_ = sendJSONResponse(&w, FailMessage{Fault: loginErr.Error()}, http.StatusUnauthorized)
-		return
-	}
-	w.Header().Set("Authorization", "Bearer "+jwt)
+	/*
+		username, password, ok := r.BasicAuth()
+		if !ok {
+			_ = sendJSONResponse(&w, FailMessage{Fault: "username and password are not formatted correctly"}, http.StatusUnauthorized)
+			return
+		}
+		jwt, loginErr := services.Login(username, password)
+		jwt = jwtdummy
+		if loginErr != nil {
+			_ = sendJSONResponse(&w, FailMessage{Fault: loginErr.Error()}, http.StatusUnauthorized)
+			return
+		}
+	*/
+	w.Header().Set("Authorization", "Bearer "+jwtdummy)
 
 	w.WriteHeader(204)
 }

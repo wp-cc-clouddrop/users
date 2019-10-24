@@ -17,9 +17,14 @@ type MongoAccess struct {
 	Database string `json:"database"`
 }
 
-type JWT struct {
-	Email string `bson:"_id" json:"email"`
+type JWTDB struct {
 	JWT   string `bson:"jwt json:"jwt"`
+	Email string `bson:"_id" json:"email"`
+}
+
+type JWT struct {
+	JWT   string `bson:"jwt json:"jwt"`
+	Email string `bson:"email" json:"email"`
 }
 
 type User struct {
