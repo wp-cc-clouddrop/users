@@ -54,6 +54,9 @@ func UpdateUser(email string, newUser User) error {
 
 func DeleteUser(email string) error {
 	deleteErr := mongoDB.Delete(userCollection, email)
+	if deleteErr == nil {
+		deleteErr = mongoDB.Delete(authCollection, email)
+	}
 	return deleteErr
 }
 
