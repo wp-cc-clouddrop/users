@@ -2,14 +2,15 @@ package azureCosmos
 
 import (
 	"encoding/json"
+	"log"
+	"users/internal/mongoDB/adapter"
+
 	. "github.com/Azure/azure-sdk-for-go/services/cosmos-db/mongodb"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
-	"log"
-	"users/internal/mongoDB/adapter"
 )
 
-const filePath string = "azureConfig.json"
+const filePath string = "config/azureConfig.json"
 
 type AzureCosmos struct {
 	session  *mgo.Session
