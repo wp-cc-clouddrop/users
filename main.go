@@ -10,7 +10,7 @@ import (
 
 func main() {
 	http.Handle("/metrics", promhttp.Handler())
-	panic(http.ListenAndServe(":8081", nil))
+	go panic(http.ListenAndServe(":8081", nil))
 
 	api.Init(8080)
 }
