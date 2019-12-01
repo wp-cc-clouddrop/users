@@ -34,16 +34,8 @@ cloud-deploy:
     name: Dev
   image: microsoft/azure-cli
   script:
-    # setup kubectl
-    - curl -LO $K8S_STABLE_VERSION_URL
-    - chmod +x ./kubectl
-    - mv ./kubectl /usr/local/bin/kubectl
-    - mkdir ~/.kube
-    - touch ~/.kube/config
-    - export KUBECONFIG=$KUBECONFIG:~/.kube/config
-    # connect to azure k8s
-    - az login --service-principal --username $AZ_USERNAME --password $AZ_PASSWORD --tenant $AZ_TENANT_ID
-    - az aks get-credentials --resource-group $AZ_RESOURCE_GROUP --name $AZ_CLUSTER_NAME
-    - kubectl config use-context $AZ_CLUSTER_NAME
+    # get kubectl context from corresponding deployment target
+    - ./login-cluster.sh
     # deploy new image!
+    - kubectl version
     - kubectl -n default rollout restart deployment/users-svc
