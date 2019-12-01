@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/mitchellh/mapstructure"
 	"log"
+	"os"
 	. "users/internal/types"
 	. "users/internal/userDB/adapter"
 	//. "users/internal/userDB/adapter/azureCosmos"
@@ -25,6 +26,7 @@ func init() {
 	connectErr := userDB.Connect()
 	if connectErr != nil {
 		log.Fatal(connectErr)
+		os.Exit(1)
 	}
 }
 
