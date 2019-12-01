@@ -32,7 +32,7 @@ cloud-deploy:
   stage: deploy
   environment:
     name: Dev
-  image: microsoft/azure-cli
+  image: docker-hub.informatik.haw-hamburg.de/wp-cc-clouddrop/cloudrop/deploy
   script:
     # get kubectl context from corresponding deployment target
     - ./login-cluster.sh
