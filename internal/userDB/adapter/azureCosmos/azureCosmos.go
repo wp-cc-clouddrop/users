@@ -3,7 +3,7 @@ package azureCosmos
 import (
 	"encoding/json"
 	"log"
-	"users/internal/mongoDB/adapter"
+	"users/internal/userDB/adapter"
 
 	. "github.com/Azure/azure-sdk-for-go/services/cosmos-db/mongodb"
 	"github.com/globalsign/mgo"

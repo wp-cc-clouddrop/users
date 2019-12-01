@@ -9,7 +9,7 @@ type FailMessage struct {
 	Fault string
 }
 
-type MongoAccess struct {
+type DBAccess struct {
 	Host     string `json:"host"`
 	Port     string `json:"port"`
 	User     string `json:"user"`
@@ -22,15 +22,27 @@ type dbJWT struct {
 	Email string `bson:"_id" json:"_id"`
 }
 
+type UserDataI interface {
+	Id() string
+}
+
 type JWT struct {
-	JWT   string `bson:"jwt" json:"jwt"`
-	Email string `bson:"_id" json:"email"`
+	JWT   string `bson:"jwt" json:"jwt" firestore:"jwt"`
+	Email string `bson:"_id" json:"email" firestore:"email"`
+}
+
+func (j JWT) Id() string {
+	return j.Email
+}
+
+func (u User) Id() string {
+	return u.Email
 }
 
 type User struct {
-	Name     string `bson:"name" json:"name"`
-	Email    string `bson:"_id" json:"email"`
-	Password string `bson:"password" json:"password"`
+	Name     string `bson:"name" json:"name" firestore:"name"`
+	Email    string `bson:"_id" json:"email" firestore:"email"`
+	Password string `bson:"password" json:"password" firestore:"password"`
 }
 
 type dbUser struct { //needed ugly workaround, at least its private

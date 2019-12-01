@@ -8,18 +8,18 @@ import (
 	. "users/internal/types"
 )
 
-type MongoDBCloud interface {
+type UserDBCloud interface {
 	Connect() error
 	Disconnect() error
 
-	Insert(collection string, obj interface{}) error
+	Insert(collection string, obj UserDataI) error
 	Update(collection string, id string, obj interface{}) error
-	Get(collection string, id string) ([]byte, error)
-	Find(collection string, fieldname string, value string) ([]byte, error)
+	Get(collection string, id string) (map[string]interface{}, error)
+	Find(collection string, fieldname string, value string) (map[string]interface{}, error)
 	Delete(collection string, id string) error
 }
 
-func ReadJSONConfig(filePath string) MongoAccess {
+func ReadJSONConfig(filePath string) DBAccess {
 	link, err := os.Open(filePath)
 	if err != nil {
 		log.Fatal(err)
@@ -30,7 +30,7 @@ func ReadJSONConfig(filePath string) MongoAccess {
 		log.Fatal(readErr)
 	}
 
-	var access MongoAccess
+	var access DBAccess
 	parseErr := json.Unmarshal(dat, &access)
 
 	if parseErr != nil {

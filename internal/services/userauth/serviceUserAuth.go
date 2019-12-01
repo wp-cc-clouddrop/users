@@ -2,70 +2,81 @@ package userauth
 
 import (
 	"errors"
+	"github.com/mitchellh/mapstructure"
 	"log"
-	. "users/internal/mongoDB/adapter"
-	. "users/internal/mongoDB/adapter/azureCosmos"
 	. "users/internal/types"
+	. "users/internal/userDB/adapter"
+	//. "users/internal/userDB/adapter/azureCosmos"
+	. "users/internal/userDB/adapter/gcpFirestore"
 	"users/internal/utils/jwt"
 	"users/internal/utils/pwSecurity"
 )
 
 var (
-	mongoDB        MongoDBCloud
+	userDB         UserDBCloud
 	userCollection string
 	authCollection string
 )
 
 func init() {
-	mongoDB = &AzureCosmos{}
+	userDB = &GCPFirestore{}
 	userCollection = "user"
 	authCollection = "auth"
-	connectErr := mongoDB.Connect()
+	connectErr := userDB.Connect()
 	if connectErr != nil {
 		log.Fatal(connectErr)
 	}
 }
 
 func Disconnect() error {
-	return mongoDB.Disconnect()
+	return userDB.Disconnect()
 }
 
 func Register(newUser User) error {
 	newUser.Password = pwSecurity.HashAndSalt(newUser.Password)
-	err := mongoDB.Insert(userCollection, newUser)
+	err := userDB.Insert(userCollection, newUser)
 	return err
 }
 
 func GetUser(email string) (User, error) {
-	bin, getErr := mongoDB.Get(userCollection, email)
+	userMap, getErr := userDB.Get(userCollection, email)
 	if getErr != nil { //not found
 		return User{}, getErr
 	}
-
-	user, parseErr := NewUserFromDB(bin) //parse data to User Struct
-	return *user, parseErr
+	var user User
+	mapErr := mapstructure.Decode(userMap, &user)
+	if mapErr != nil {
+		return User{}, errors.New("jwt, mapping error")
+	}
+	//user, parseErr := NewUserFromDB(bin) //parse data to User Struct
+	return user, nil
 }
 
 func UpdateUser(email string, newUser User) error {
 	newUser.Password = pwSecurity.HashAndSalt(newUser.Password)
-	updateErr := mongoDB.Update(userCollection, email, newUser)
+	updateErr := userDB.Update(userCollection, email, newUser)
 	return updateErr
 }
 
 func DeleteUser(email string) error {
-	deleteErr := mongoDB.Delete(userCollection, email)
+	deleteErr := userDB.Delete(userCollection, email)
 	if deleteErr == nil {
-		deleteErr = mongoDB.Delete(authCollection, email)
+		deleteErr = userDB.Delete(authCollection, email)
 	}
 	return deleteErr
 }
 
 func Login(email string, password string) (string, error) {
-	userBin, lookupErr := mongoDB.Get(userCollection, email)
+	userMap, lookupErr := userDB.Get(userCollection, email)
 	if lookupErr != nil {
 		return "", lookupErr
 	}
-	user, _ := NewUserFromDB(userBin) // with hashed password
+	//user, _ := NewUserFromDB(userBin) // with hashed password
+	var user User
+	mapErr := mapstructure.Decode(userMap, &user)
+	if mapErr != nil {
+		return "", errors.New("jwt, mapping error")
+	}
 	pass := pwSecurity.ComparePasswords(user.Password, password)
 
 	if pass {
@@ -74,9 +85,9 @@ func Login(email string, password string) (string, error) {
 			JWT:   token,
 			Email: email,
 		}
-		insErr := mongoDB.Insert(authCollection, jwt)
+		insErr := userDB.Insert(authCollection, jwt)
 		if insErr != nil {
-			updErr := mongoDB.Update(authCollection, email, jwt)
+			updErr := userDB.Update(authCollection, email, jwt)
 			return token, updErr
 		} else {
 			return token, lookupErr
@@ -87,20 +98,31 @@ func Login(email string, password string) (string, error) {
 }
 
 func Logout(tokenstring string) error {
-	jwtbin, findErr := mongoDB.Find(authCollection, "jwt", tokenstring)
+	jwtMap, findErr := userDB.Find(authCollection, "jwt", tokenstring)
 	if findErr != nil {
 		return errors.New("jwt, session-key is not valid")
 	}
-	jwt, _ := NewJWTFromDB(jwtbin)
-	delErr := mongoDB.Delete(authCollection, jwt.Email)
+	var jwt JWT
+	mapErr := mapstructure.Decode(jwtMap, &jwt)
+	if mapErr != nil {
+		return errors.New("jwt, mapping error")
+	}
+
+	//jwt, _ := NewJWTFromDB(jwtbin)
+	delErr := userDB.Delete(authCollection, jwt.Email)
 	return delErr
 }
 
 func Auth(tokenstring string) (JWT, error) {
-	jwtbin, findErr := mongoDB.Find(authCollection, "jwt", tokenstring)
+	jwtMap, findErr := userDB.Find(authCollection, "jwt", tokenstring)
 	if findErr != nil {
 		return JWT{}, errors.New("jwt, session-key is not valid")
 	}
-	jwt, parseErr := NewJWTFromDB(jwtbin)
-	return *jwt, parseErr
+	var jwt JWT
+	mapErr := mapstructure.Decode(jwtMap, &jwt)
+	if mapErr != nil {
+		return JWT{}, errors.New("jwt, mapping error")
+	}
+	//jwt, parseErr := NewJWTFromDB(jwtbin)
+	return jwt, nil
 }
