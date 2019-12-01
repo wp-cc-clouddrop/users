@@ -27,7 +27,15 @@ func init() {
 	if connectErr != nil {
 		log.Fatal(connectErr)
 		os.Exit(1)
+	} else {
+		var debug = User{
+			Name:     "test",
+			Email:    "this is a debig user",
+			Password: "no pass",
+		}
+		userDB.Insert("DEBUG", debug)
 	}
+
 }
 
 func Disconnect() error {
