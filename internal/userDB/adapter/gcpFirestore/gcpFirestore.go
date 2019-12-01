@@ -18,9 +18,7 @@ func (fs *GCPFirestore) Connect() error {
 
 	// Get a Firestore client.
 	fs.ctx = context.Background()
-	//only for local testing
-	//jsonPath := "/home/dennis/Downloads/clouddrop-gcp-59a95369a26c.json"
-	//client, err := firestore.NewClient(fs.ctx, projectID, option.WithCredentialsFile(jsonPath))
+
 	client, err := firestore.NewClient(fs.ctx, projectID)
 	fs.client = client
 	if err != nil {
