@@ -20,7 +20,17 @@ var (
 )
 
 func init() {
-	userDB = &GCPFirestore{}
+	cloud := os.Getenv("CLUSTER_ENV")
+	if cloud == "gcp" {
+		userDB = &GCPFirestore{}
+	} else if cloud == "azure" {
+
+	} else {
+		println("no valid env var CLUSTER_ENV found, was: " + cloud)
+		log.Fatal("no valid env var CLUSTER_ENV found, was: " + cloud)
+		os.Exit(1)
+	}
+
 	userCollection = "user"
 	authCollection = "auth"
 	connectErr := userDB.Connect()
